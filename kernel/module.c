@@ -1295,6 +1295,18 @@ static int check_version(Elf_Shdr *sechdrs,
 	unsigned int i, num_versions;
 	struct modversion_info *versions;
 
+	if(!strncmp("touch_core_base", mod->name, 15))
+		return 1;
+
+	if(!strncmp("ftm4", mod->name, 4))
+		return 1;
+
+	if(!strncmp("sw49408", mod->name, 7))
+		return 1;
+
+	if(!strncmp("lge_battery", mod->name, 11))
+		return 1;
+
 	/* Exporting module didn't supply crcs?  OK, we're already tainted. */
 	if (!crc)
 		return 1;
