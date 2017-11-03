@@ -615,7 +615,7 @@ int kern_addr_valid(unsigned long addr)
 	pmd_t *pmd;
 	pte_t *pte;
 
-	if ((((long)addr) >> VA_BITS) != -1UL)
+	if ((((long)addr) >> VA_BITS) != ((-1UL)))
 		return 0;
 
 	pgd = pgd_offset_k(addr);

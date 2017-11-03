@@ -79,3 +79,5 @@ endif
 ifeq ($(CONFIG_DM_VERITY_AVB),y)
 dm-verity-objs			+= dm-verity-avb.o
 endif
+
+CFLAGS_dm-crypt.o := -Wno-undefined-optimization

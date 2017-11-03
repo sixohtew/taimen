@@ -33,6 +33,9 @@ KASAN_SANITIZE_kcov.o := n
 # cond_syscall is currently not LTO compatible
 CFLAGS_sys_ni.o = $(DISABLE_LTO)
 
+# Clang 4.0 currently has issues with this
+CFLAGS_pid.o := -Wno-tautological-constant-out-of-range-compare
+
 obj-y += sched/
 obj-y += locking/
 obj-y += power/

@@ -24,6 +24,9 @@ KCOV_INSTRUMENT_vmstat.o := n
 # Since __builtin_frame_address does work as used, disable the warning.
 CFLAGS_usercopy.o += $(call cc-disable-warning, frame-address)
 
+# Clang 4.0 currently has issues with this
+CFLAGS_page_alloc.o := -Wno-undefined-optimized
+
 mmu-y			:= nommu.o
 mmu-$(CONFIG_MMU)	:= gup.o highmem.o memory.o mincore.o \
 			   mlock.o mmap.o mprotect.o mremap.o msync.o rmap.o \

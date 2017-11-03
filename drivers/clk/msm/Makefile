@@ -32,4 +32,5 @@ obj-$(CONFIG_COMMON_CLK_MSM)	+= mdss/
 
 # TODO: remove me b/62058353
 subdir-ccflags-y += \
-	-Wno-literal-conversion
+	-Wno-literal-conversion \
+	-Wno-tautological-constant-out-of-range-compare
