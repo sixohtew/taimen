@@ -116,6 +116,14 @@ ifneq ($(BUILD_DTC_FLAGS),)
 	DTC_FLAGS += $(BUILD_DTC_FLAGS)
 endif
 
+ifeq ($(CONFIG_BOARD_MUSKIE),y)
+DTBO_CFGS := $(boot)/dts/dtboimg-muskie.cfg
+endif
+
+ifeq ($(CONFIG_BOARD_TAIMEN),y)
+DTBO_CFGS += $(boot)/dts/dtboimg-taimen.cfg
+endif
+
 all:	$(KBUILD_IMAGE) $(KBUILD_DTBS) $(KBUILD_DTBO_IMG) $(KBUILD_APPLY_DTBO)
 
 ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
@@ -149,7 +157,7 @@ dtbs_install:
 Image-dtb Image.gz-dtb Image.lz4-dtb: vmlinux scripts dtbs
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 
-dtbo.img: $(boot)/dts/dtboimg.cfg dtbs
+dtbo.img: $(DTBO_CFGS) dtbs
 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
 
 PHONY += apply_dtbo

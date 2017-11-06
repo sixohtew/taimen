@@ -25,6 +25,14 @@ DTB_OBJS := $(shell find -L $(obj)/dts/ -name \*.dtb)
 endif
 DTBO_OBJS := $(shell find -L $(obj)/dts/ -name \*.dtbo)
 
+ifeq ($(CONFIG_BOARD_MUSKIE),y)
+DTBO_CFGS := $(obj)/dts/dtboimg-muskie.cfg
+endif
+
+ifeq ($(CONFIG_BOARD_TAIMEN),y)
+DTBO_CFGS += $(obj)/dts/dtboimg-taimen.cfg
+endif
+
 $(obj)/Image: vmlinux FORCE
 	$(call if_changed,objcopy)
 
@@ -52,7 +60,7 @@ $(obj)/Image.gz-dtb: $(obj)/Image.gz $(DTB_OBJS) FORCE
 $(obj)/Image.lz4-dtb: $(obj)/Image.lz4 $(DTB_OBJS) FORCE
 	$(call if_changed,cat)
 
-$(obj)/dtbo.img: $(obj)/dts/dtboimg.cfg $(DTBO_OBJS) FORCE
+$(obj)/dtbo.img: $(DTBO_CFGS) $(DTBO_OBJS) FORCE
 	$(call if_changed,mkdtimg,4096) # align dtbo.img to 4kB
 
 install: $(obj)/Image
