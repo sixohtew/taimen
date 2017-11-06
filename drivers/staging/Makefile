@@ -49,3 +49,5 @@ obj-$(CONFIG_MOST)		+= most/
 obj-$(CONFIG_QCA_CLD_WLAN)	+= qcacld-3.0/
 obj-$(CONFIG_REGULATOR_BCM15602)        += easel/regulator/
 obj-$(CONFIG_HTC_WLAN_NV)	+= wlan_mac/
+
+CFLAGS_qcacld-3.0 := -Wno-enum-compare
