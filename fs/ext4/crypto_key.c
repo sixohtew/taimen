@@ -186,14 +186,6 @@ void ext4_free_crypt_info(struct ext4_crypt_info *ci)
 	if (!ci)
 		return;
 
-	if (atomic_read(&ci->ci_dedup_refcnt) != 0) {
-		/* dropping reference to deduplicated key */
-		if (!atomic_dec_and_lock(&ci->ci_dedup_refcnt,
-					 &ext4_crypt_infos_lock))
-			return;
-		hash_del(&ci->ci_dedup_node);
-		spin_unlock(&ext4_crypt_infos_lock);
-	}
 	crypto_free_ablkcipher(ci->ci_ctfm);
 	memset(ci, 0, sizeof(*ci));
 	kmem_cache_free(ext4_crypt_info_cachep, ci);
@@ -276,9 +268,11 @@ int ext4_get_encryption_info(struct inode *inode)
 	if (ei->i_crypt_info)
 		return 0;
 
-	res = ext4_init_crypto();
-	if (res)
-		return res;
+	if (!ext4_read_workqueue) {
+		res = ext4_init_crypto();
+		if (res)
+			return res;
+	}
 
 	res = ext4_xattr_get(inode, EXT4_XATTR_INDEX_ENCRYPTION,
 				 EXT4_XATTR_NAME_ENCRYPTION_CONTEXT,
@@ -357,6 +351,12 @@ int ext4_get_encryption_info(struct inode *inode)
 	}
 	down_read(&keyring_key->sem);
 	ukp = user_key_payload(keyring_key);
+	if (!ukp) {
+		/* key was revoked before we acquired its semaphore */
+		res = -EKEYREVOKED;
+		up_read(&keyring_key->sem);
+		goto out;
+	}
 	if (ukp->datalen != sizeof(struct ext4_encryption_key)) {
 		res = -EINVAL;
 		up_read(&keyring_key->sem);
@@ -396,26 +396,6 @@ int ext4_get_encryption_info(struct inode *inode)
 	up_read(&keyring_key->sem);
 	if (res)
 		goto out;
-	if (for_fname ||
-	    (crypt_info->ci_data_mode != EXT4_ENCRYPTION_MODE_PRIVATE)) {
-		ctfm = crypto_alloc_ablkcipher(cipher_str, 0, 0);
-		if (!ctfm || IS_ERR(ctfm)) {
-			res = ctfm ? PTR_ERR(ctfm) : -ENOMEM;
-			pr_debug("%s: error %d (inode %u) allocating crypto tfm\n",
-				__func__, res, (unsigned) inode->i_ino);
-			goto out;
-		}
-		crypt_info->ci_ctfm = ctfm;
-		crypto_ablkcipher_clear_flags(ctfm, ~0);
-		crypto_tfm_set_flags(crypto_ablkcipher_tfm(ctfm),
-				     CRYPTO_TFM_REQ_WEAK_KEY);
-		res = crypto_ablkcipher_setkey(ctfm, crypt_info->ci_raw_key,
-					       ext4_encryption_key_size(mode));
-		if (res)
-			goto out;
-		memzero_explicit(crypt_info->ci_raw_key,
-			sizeof(crypt_info->ci_raw_key));
-	}
 	if (cmpxchg(&ei->i_crypt_info, NULL, crypt_info) == NULL)
 		crypt_info = NULL;
 out:

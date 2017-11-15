@@ -318,8 +318,7 @@ int ext4_mpage_readpages(struct address_space *mapping,
 			struct ext4_crypto_ctx *ctx = NULL;
 
 			if (ext4_encrypted_inode(inode) &&
-			    S_ISREG(inode->i_mode) &&
-			    !ext4_using_hardware_encryption(inode)) {
+			    S_ISREG(inode->i_mode)) {
 				ctx = ext4_get_crypto_ctx(inode, GFP_NOFS);
 				if (IS_ERR(ctx))
 					goto set_error_page;
